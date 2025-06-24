@@ -1,6 +1,6 @@
 name: state_map
 description: Supply a State object by looking up its StatefulWidget object in a Map
-version: 1.0.0
+version: 1.1.0
 homepage: https://github.com/AndriousSolutions/state_map
 repository: https://github.com/AndriousSolutions/state_map
 

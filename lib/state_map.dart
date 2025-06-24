@@ -23,9 +23,20 @@ import 'package:flutter/material.dart';
 
 extension StateMapStatefulWidgetExtension on StatefulWidget {
   //
+  T? stateAs<T extends State>() {
+    T? state;
+    try {
+      // Try in case its a bad cast
+      state = StateMap.of(this) as T;
+    } catch (e) {
+      state = null;
+    }
+    return state;
+  }
+
   State? get state => StateMap.of(this);
 
-  bool setState(VoidCallback fn) => StateMap.setStateOf(fn, this);
+  bool setState(VoidCallback fn) => StateMap.setStateOf(this, fn);
 
   bool refresh() => StateMap.refresh(this);
 }
@@ -38,13 +49,13 @@ extension StateMapStateExtension on State {
 /// Manages the collection of State objects extended by the SetState class
 mixin StateMap<T extends StatefulWidget> on State<T> {
   /// The static map of StateSet objects.
-  static final Map<StatefulWidget, State> _states = {};
+  static final Map<StatefulWidget, State> _statefulStates = {};
 
   static State? of(StatefulWidget? widget) =>
-      widget == null ? null : _states[widget];
+      widget == null ? null : _statefulStates[widget];
 
   /// Return true if successful
-  static bool setStateOf(VoidCallback fn, StatefulWidget widget) {
+  static bool setStateOf(StatefulWidget widget, VoidCallback fn) {
     bool set;
 
     final state = of(widget);
@@ -62,29 +73,29 @@ mixin StateMap<T extends StatefulWidget> on State<T> {
   }
 
   /// Return true if successful
-  static bool refresh(StatefulWidget widget) => setStateOf(() {}, widget);
+  static bool refreshState(StatefulWidget widget) => setStateOf(widget, () {});
 
   /// Return true if successful
-  static bool rebuild(StatefulWidget widget) => setStateOf(() {}, widget);
+  static bool rebuildState(StatefulWidget widget) => setStateOf(widget, () {});
 
   @override
   void initState() {
     super.initState();
-    _states[widget] = this;
+    _statefulStates[widget] = this;
   }
 
   @override
   void didUpdateWidget(covariant T oldWidget) {
-    _states[widget] = this;
-    _states.removeWhere((key, value) => key == oldWidget);
     super.didUpdateWidget(oldWidget);
+    _statefulStates.removeWhere((key, value) => key == oldWidget);
+    _statefulStates[widget] = this;
   }
 
   /// Remove objects from the static Maps if not already removed.
   /// add this function to the State object's dispose function instead
   @override
   void dispose() {
-    _states.removeWhere((key, value) => value == this);
+    _statefulStates.removeWhere((key, value) => value == this);
     super.dispose();
   }
 }
